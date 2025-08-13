@@ -1,0 +1,7 @@
+apiVersion: backstage.io/v1alpha1
+kind: Location
+metadata:
+  name: extension-generators-templates-locations
+spec:
+  targets:
+    - ./generators/catalog-info.yaml

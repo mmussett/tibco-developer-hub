@@ -1,0 +1,234 @@
+{
+    "name": "${{values.activityName}}",
+    "version": "${{values.version}}",
+    "type": "flogo:activity",
+    "title": "${{values.activityName}}",
+    "author": "TIBCO Developer Hub",
+    "display": {
+        "category": "${{values.category}}",
+        "visible": true,
+        "description": "",
+        "smallIcon": "icons/activity-icon@2x.png",
+		"largeIcon": "icons/activity-icon@3x.png"
+    },
+    "feature": {
+        "retry": {
+            "enabled": true
+        }
+    },
+    "ref": "github.com/${{values.owner}}/flogo-enterprise-hub/extensions/${{values.category}}/activity/${{values.activityName}}",
+    "settings": [
+{%- if(values.hasSettingsString === 'yes') %}
+        {
+            "name": "aSettingString",
+            "type": "string",
+            "required": true,
+            "description": "A string setting",
+            "value":"Default_Value",
+            "display": {
+                "name": "A string setting",
+                "description": "Example of a string setting",
+                "required": true,
+                "type":"string",
+                "appPropertySupport": true
+            }
+        }
+{%- endif %} 
+{%- if(values.hasSettingsString === 'yes' and (values.hasSettingsBoolean === 'yes' or values.hasSettingsDropdown === 'yes')) %}       
+        ,
+{%- endif %}
+{%- if(values.hasSettingsBoolean === 'yes') %}
+        {
+            "name": "aSettingBoolean",
+            "type": "boolean",
+            "required": true,
+            "value": false,
+            "display": {
+                "name": "A boolean setting",
+                "description": "Example of a boolean setting",
+                "visible": true
+            }
+        }
+{%- endif %}
+{%- if(values.hasSettingsBoolean === 'yes' and values.hasSettingsDropdown === 'yes') %}       
+        ,
+{%- endif %}        
+{%- if(values.hasSettingsDropdown === 'yes') %}
+        {
+            "name": "aSettingStringDropdown",
+            "type": "string",
+            "required": true,
+            "allowed": [
+                "Option 1",
+                "Option 2",
+                "Option 3"
+            ],
+            "value": "Option 1",
+            "display": {
+                "name": "A dropdown setting",
+                "description": "Example of a Setting Dropdown.",
+                "type": "dropdown",
+                "selection": "single"
+            }
+        }
+{%- endif %}
+    ],
+    "inputs": [
+{%- if(values.hasConnection === 'yes') %}
+        {
+            "name": "${{values.category}} Connection",
+            "type": "connection",
+            "required": true,
+            "allowed": [],
+            "display": {
+                "name": "${{values.category}} Connection",
+                "description": "Select ${{values.category}} Connection",
+                "type": "connection",
+                "selection": "single"
+            }
+        }
+{%- endif %} 
+{%- if(values.hasConnection === 'yes' and (values.hasInputString === 'yes' or values.hasInputBoolean === 'yes'  or values.hasInputInteger === 'yes' or values.hasInputDecimal === 'yes' or values.hasInputObject === 'yes' or values.hasInputObjectWithSchema === 'yes' or values.hasInputParameters === 'yes')) %}               
+        ,
+{%- endif %}
+{%- if(values.hasInputString === 'yes') %}        
+        {
+            "name": "anInputString",
+            "type": "string",
+            "required": true
+        }
+{%- endif %} 
+{%- if(values.hasInputString === 'yes' and (values.hasInputBoolean === 'yes'  or values.hasInputInteger === 'yes' or values.hasInputDecimal === 'yes' or values.hasInputObject === 'yes' or values.hasInputObjectWithSchema === 'yes' or values.hasInputParameters === 'yes')) %}                       
+        ,
+{%- endif %}
+{%- if(values.hasInputBoolean === 'yes') %}
+        {
+            "name": "anInputBoolean",
+            "type": "boolean",
+            "required": true
+        }
+{%- endif %} 
+{%- if(values.hasInputBoolean === 'yes'  and (values.hasInputInteger === 'yes' or values.hasInputDecimal === 'yes' or values.hasInputObject === 'yes' or values.hasInputObjectWithSchema === 'yes' or values.hasInputParameters === 'yes')) %}          
+        ,
+{%- endif %}
+{%- if(values.hasInputInteger === 'yes') %}
+        {
+            "name": "anInputInteger",
+            "type": "integer",
+            "required": true
+        }
+{%- endif %} 
+{%- if(values.hasInputInteger === 'yes' and (values.hasInputDecimal === 'yes' or values.hasInputObject === 'yes' or values.hasInputObjectWithSchema === 'yes' or values.hasInputParameters === 'yes')) %}   
+        ,
+{%- endif %}
+{%- if(values.hasInputDecimal === 'yes') %}
+        {
+            "name": "anInputDecimal",
+            "type": "number",
+            "required": true
+        }
+{%- endif %}
+{%- if(values.hasInputDecimal === 'yes' and (values.hasInputObject === 'yes' or values.hasInputObjectWithSchema === 'yes' or values.hasInputParameters === 'yes')) %}           
+        ,
+{%- endif %}
+{%- if(values.hasInputObject === 'yes') %}
+        {
+            "name": "anObject",
+            "type": "object"
+        }
+{%- endif %}
+{%- if(values.hasInputObject === 'yes' and (values.hasInputObjectWithSchema === 'yes' or values.hasInputParameters === 'yes')) %}                   
+        ,
+{%- endif %}
+{%- if(values.hasInputObjectWithSchema === 'yes') %}
+        {
+            "name": "anInputObjectWithSchema",
+            "type": "object",
+            "required": true,
+            "display": {
+                "name": "JSON Schema",
+                "description": "An example JSON-based object",
+                "type": "texteditor",
+                "syntax": "json",
+                "mappable": true,
+                "visible": true
+            }
+        }
+{%- endif %}
+{%- if(values.hasInputObjectWithSchema === 'yes' or values.hasInputParameters === 'yes') %}                           
+        ,
+{%- endif %}
+{%- if(values.hasInputParameters === 'yes') %}
+        {
+            "name": "anInputParameters",
+            "type": "object",
+            "display": {
+                "name": "Parameters",
+                "description": "An example Parameter-based object",
+                "type": "params",
+                "mappable": true,
+                "schema": "{\"type\": \"array\",\"items\": {\"type\": \"object\",\"properties\": {\"parameterName\": {\"type\": \"string\"},\"type\": {\"type\": {\"enum\": [\"string\"]}}}}}"
+            }
+        }
+{%- endif %}
+    ],
+    "outputs": [
+{%- if(values.hasOutputString === 'yes') %}
+        {
+           "name": "anOutputString",
+           "type": "string"
+        }
+{%- endif %} 
+{%- if(values.hasOutputString === 'yes' and (values.hasOutputBoolean === 'yes' or values.hasOutputInteger === 'yes'  or values.hasOutputDecimal === 'yes' or values.hasOutputObject === 'yes' or values.hasOutputObjectWithSchema === 'yes')) %}                       
+        ,
+{%- endif %}
+{%- if(values.hasOutputBoolean === 'yes') %}
+        {
+            "name": "anOutputBoolean",
+            "type": "boolean"
+        }
+{%- endif %} 
+{%- if(values.hasOutputBoolean === 'yes' and (values.hasOutputInteger === 'yes'  or values.hasOutputDecimal === 'yes' or values.hasOutputObject === 'yes' or values.hasOutputObjectWithSchema === 'yes')) %}               
+        ,
+{%- endif %}
+{%- if(values.hasOutputInteger === 'yes') %}
+        {
+            "name": "anOutputInteger",
+            "type": "integer"
+        }
+{%- endif %} 
+{%- if(values.hasOutputInteger === 'yes'  and (values.hasOutputDecimal === 'yes' or values.hasOutputObject === 'yes' or values.hasOutputObjectWithSchema === 'yes')) %}             
+        ,
+{%- endif %}
+{%- if(values.hasOutputDecimal === 'yes') %}
+        {
+            "name": "anOutputDecimal",
+            "type": "number"
+        }
+{%- endif %} 
+{%- if(values.hasOutputDecimal === 'yes' and (values.hasOutputObject === 'yes' or values.hasOutputObjectWithSchema === 'yes')) %}          
+        ,
+{%- endif %}
+{%- if(values.hasOutputObject === 'yes') %}
+        {
+           "name": "anOutputObject",
+           "type": "object"
+        }
+{%- endif %} 
+{%- if(values.hasOutputObject === 'yes' or values.hasOutputObjectWithSchema === 'yes') %}          
+        ,
+{%- endif %}
+{%- if(values.hasOutputObjectWithSchema === 'yes') %}
+        {
+            "name": "anOutputObjectWithSchema",
+            "type": "object",
+            "display": {
+                "name": "JSON Schema",
+                "description": "An example JSON object",
+                "type": "texteditor",
+                "syntax": "json"
+            }
+        }
+{%- endif %}
+    ]
+}

@@ -1,0 +1,500 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: simple-activity-generator-v1
+  title: Flogo Activity Extension Scaffolder
+  description: Generates a scaffold golang repository for creating Flogo activity extension. 
+  tags:
+    - flogo
+    - generator
+    - tibco
+    - template
+    - developer-hub
+spec:
+  owner: group:default/tibco-flogo-generators
+  type: service
+
+  parameters:
+    - title: Flogo Enterprise Hub Repository Location
+      required:
+        - repoUrl
+        - branchName
+      properties:
+        repoUrl:
+          title: GitHub repository 
+          type: string
+          ui:field: RepoUrlPicker
+          ui:options:
+            allowedHosts:
+              - github.com
+          default: "github.com?owner=mmussett&repo=flogo-enterprise-hub"
+        branchName:
+          title: Branch name
+          type: string
+          default: main
+          description: Name of the branch to commit repository changes to
+
+    - title: Contribution Details
+      required:
+        - extensionName
+        - version
+        - category
+        - description
+      properties:
+        category:
+          title: Category
+          type: string
+          description: Extension category e.g. general, default, crypto, logging
+          ui:options:
+            placeholder: general
+        extensionName:
+          title: ExtensionName
+          type: string
+          description: Extension name of the activity
+          ui:options:
+            placeholder: "logger"      
+        version:
+          title: Version
+          type: string
+          default: "1.0.0"
+        description:
+          title: Description
+          type: string
+          description: Brief one-line description of the extension
+        overview:
+          title: Overview
+          type: string
+          description: Overview of the extension
+          default: "This extension provides the following features..."
+
+    - title: Scaffolder Configuration
+      required:
+        - scaffoldActivities
+        - scaffoldTrigger
+        - scaffoldConnector
+      properties:
+        scaffoldActivities:
+          title: Scaffolder to generate Activity boilerplate code?
+          type: string
+          enum:
+            - yes
+            - no
+          default: yes          
+        scaffoldTrigger:
+          title: Scaffolder to generate Trigger boilerplate code?
+          type: string
+          enum:
+            - yes
+            - no
+          default: no
+        scaffoldConnector:
+          title: Scaffolder to generate Connector boilerplate code?
+          type: string
+          enum:
+            - yes
+            - no
+          default: no
+
+
+    - title: Activity Details
+      properties:
+        activityList:
+          title: List of activities
+          description: "Provide a list of one or more activity names"
+          type: array
+          items:
+            type: string
+            title: Activitiy Name
+
+      required:
+        - activityList
+
+    - title: Activity Settings Configuration
+      required:
+        - hasSettingsString
+        - hasSettingsBoolean
+        - hasSettingsDropdown
+      properties:
+        hasSettingsString:
+          title: Scaffolder to generate activity with settings string field?
+          type: string
+          enum:
+            - yes
+            - no
+          default: yes          
+        hasSettingsBoolean:
+          title: Scaffolder to generate activity with settings boolean field?
+          type: string
+          enum:
+            - yes
+            - no
+          default: no
+        hasSettingsDropdown:
+          title: Scaffolder to generate activity with settings dropdown list field?
+          type: string
+          enum:
+            - yes
+            - no
+          default: no
+
+    - title: Activity Input Configuration
+      required:
+        - hasInputString
+        - hasInputBoolean
+        - hasInputInteger
+        - hasInputDecimal
+        - hasInputObject
+        - hasInputObjectWithSchema
+        - hasInputParameters
+      properties:
+        hasInputString:
+          title: Scaffolder to generate activity with input string field?
+          type: string
+          enum:
+            - yes
+            - no
+          default: yes          
+        hasInputBoolean:
+          title: Scaffolder to generate activity with input boolean field?
+          type: string
+          enum:
+            - yes
+            - no
+          default: no
+        hasInputInteger:
+          title: Scaffolder to generate activity with input integer field?
+          type: string
+          enum:
+            - yes
+            - no
+          default: no
+        hasInputDecimal:
+          title: Scaffolder to generate activity with input decimal field?
+          type: string
+          enum:
+            - yes
+            - no
+          default: no
+        hasInputObject:
+          title: Scaffolder to generate activity with input object field?
+          type: string
+          enum:
+            - yes
+            - no
+          default: no
+        hasInputObjectWithSchema:
+          title: Scaffolder to generate activity with input object with schema field?
+          type: string
+          enum:
+            - yes
+            - no
+          default: no
+        hasInputParameters:
+          title: Scaffolder to generate activity with input parameter field?
+          type: string
+          enum:
+            - yes
+            - no
+          default: no
+
+    - title: Activity Output Configuration
+      required:
+        - hasOutputString
+        - hasOutputBoolean
+        - hasOutputInteger
+        - hasOutputDecimal
+        - hasOutputObject
+        - hasOutputObjectWithSchema
+      properties:
+        hasOutputString:
+          title: Scaffolder to generate Activity with String Input field?
+          type: string
+          enum:
+            - yes
+            - no
+          default: yes          
+        hasOutputBoolean:
+          title: Scaffolder to generate Activity with String Input field?
+          type: string
+          enum:
+            - yes
+            - no
+          default: no
+        hasOutputInteger:
+          title: Scaffolder to generate Activity with String Input field?
+          type: string
+          enum:
+            - yes
+            - no
+          default: no
+        hasOutputDecimal:
+          title: Scaffolder to generate Activity with String Input field?
+          type: string
+          enum:
+            - yes
+            - no
+          default: no
+        hasOutputObject:
+          title: Scaffolder to generate Activity with String Input field?
+          type: string
+          enum:
+            - yes
+            - no
+          default: no
+        hasOutputObjectWithSchema:
+          title: Scaffolder to generate Activity with String Input field?
+          type: string
+          enum:
+            - yes
+            - no
+          default: no
+
+
+  # The import flow consist out of 4 steps:
+  # 1. Fetch the project from GitHub
+  # 2. Generate the Component YAML
+  # 3. Commit the Component YAML file back to the GitHub project branch creating a pull request
+  # 4. Register the Component in the catalog
+
+  steps:
+    - id: clone
+      name: Clone the Project
+      action: tibco:git:clone
+      input:
+        failOnError: true
+        repoUrl: ${{ "https://"  + (parameters.repoUrl | parseRepoUrl).host + "/" + (parameters.repoUrl | parseRepoUrl).owner + "/" +  (parameters.repoUrl | parseRepoUrl).repo }}
+
+    - id: makeTopLevelFolder
+      name: Make top-level folder in Repository
+      action: file:makeDirectory
+      input:
+        dirPath: ${{ "extensions/" + parameters.category }}
+
+    - id: makeSrcFolder
+      name: Make src folder in Repository
+      action: file:makeDirectory
+      input:
+        dirPath: ${{ "extensions/" + parameters.category + "/src" }}
+
+    - id: makeActivityFolder
+      name: Make activity folder in src (if required)
+      if: ${{ parameters.scaffoldActivities === 'yes' }}
+      action: file:makeDirectory
+      input:
+        dirPath: ${{ "extensions/" + parameters.category + "/src/activity" }}
+
+    - id: makeActivitySubFolder
+      name: Make activity sub-folder under src/activity
+      if: ${{ parameters.scaffoldActivities === 'yes' }}
+      each: ${{ parameters.activityList}}
+      action: file:makeDirectory
+      input:
+        dirPath: ${{ "extensions/" + parameters.category + "/src/activity/" + each.value }}      
+
+    - id: makeActivityIconSubFolder
+      name: Make activity sub-folder under src/activity
+      if: ${{ parameters.scaffoldActivities === 'yes' }}
+      each: ${{ parameters.activityList}}
+      action: file:makeDirectory
+      input:
+        dirPath: ${{ "extensions/" + parameters.category + "/src/activity/" + each.value + "/icons"}}      
+
+    - id: makeActivityIcons
+      name: Make activity icons
+      if: ${{ parameters.scaffoldActivities === 'yes' }}
+      each: ${{ parameters.activityList}}
+      action: fetch:template
+      input:
+        url: ./skeletons/activity/icons
+        targetPath: ${{ "extensions/" + parameters.category + "/activity/" + each.value + "/icons" }}
+        replace: true
+        values:
+          extensionName: ${{ parameters.extensionName }}
+          activityName: ${{ each.value }}
+
+    - id: generateActivityReadme
+      name: Generate activity README.md
+      if: ${{ parameters.scaffoldActivities === 'yes' }}
+      each: ${{ parameters.activityList}}
+      action: fetch:template:file
+      input:
+        url: ./skeletons/activity/README.md
+        targetPath: ${{ "extensions/" + parameters.category + "/activity/" + each.value + "/README.md" }}
+        replace: true
+        values:
+          extensionName: ${{ parameters.extensionName }}
+          activityName: ${{ each.value }}
+
+    - id: generateActivityJson
+      name: Generate activity.json
+      if: ${{ parameters.scaffoldActivities === 'yes' }}
+      each: ${{ parameters.activityList}}
+      action: fetch:template:file
+      input:
+        url: ./skeletons/activity/activity.json.njk
+        targetPath: ${{ "extensions/" + parameters.category + "/activity/" + each.value + "/activity.json" }}
+        replace: true
+        values:
+          extensionName: ${{ parameters.extensionName }}
+          owner: ${{ (parameters.repoUrl | parseRepoUrl).owner }}
+          category: ${{ parameters.category }}
+          version: ${{ parameters.version }}
+          activityName: ${{ each.value }}
+          hasConnection: ${{ parameters.scaffoldConnector }}
+          hasSettingsString: ${{ parameters.hasSettingsString }}
+          hasSettingsBoolean: ${{ parameters.hasSettingsBoolean }}
+          hasSettingsDropdown: ${{ parameters.hasSettingsDropdown }}
+          hasInputString: ${{ parameters.hasInputString }}
+          hasInputBoolean: ${{ parameters.hasInputBoolean }}
+          hasInputInteger: ${{ parameters.hasInputInteger }}
+          hasInputDecimal: ${{ parameters.hasInputDecimal }}
+          hasInputObject: ${{ parameters.hasInputObject }}
+          hasInputObjectWithSchema: ${{ parameters.hasInputObjectWithSchema }}
+          hasInputParameters: ${{ parameters.hasInputParameters }}
+          hasOutputString: ${{ parameters.hasOutputString }}
+          hasOutputBoolean: ${{ parameters.hasOutputBoolean }}
+          hasOutputInteger: ${{ parameters.hasOutputInteger }}
+          hasOutputDecimal: ${{ parameters.hasOutputDecimal }}
+          hasOutputObject: ${{ parameters.hasOutputObject }}
+          hasOutputObjectWithSchema: ${{ parameters.hasOutputObjectWithSchema }}
+          
+    - id: generateMetadataGo
+      name: Generate metadata.go
+      if: ${{ parameters.scaffoldActivities === 'yes' }}
+      each: ${{ parameters.activityList}}
+      action: fetch:template:file
+      input:
+        url: ./skeletons/activity/metadata.go.njk
+        targetPath: ${{ "extensions/" + parameters.category + "/activity/" + each.value + "/metadata.go" }}
+        replace: true
+        values:
+          extensionName: ${{ parameters.extensionName }}
+          category: ${{ parameters.category }}
+          version: ${{ parameters.version }}
+          activityName: ${{ each.value }}
+          hasConnection: ${{ parameters.scaffoldConnector }}
+          hasSettingsString: ${{ parameters.hasSettingsString }}
+          hasSettingsBoolean: ${{ parameters.hasSettingsBoolean }}
+          hasSettingsDropdown: ${{ parameters.hasSettingsDropdown }}
+          hasInputString: ${{ parameters.hasInputString }}
+          hasInputBoolean: ${{ parameters.hasInputBoolean }}
+          hasInputInteger: ${{ parameters.hasInputInteger }}
+          hasInputDecimal: ${{ parameters.hasInputDecimal }}
+          hasInputObject: ${{ parameters.hasInputObject }}
+          hasInputObjectWithSchema: ${{ parameters.hasInputObjectWithSchema }}
+          hasInputParameters: ${{ parameters.hasInputParameters }}
+          hasOutputString: ${{ parameters.hasOutputString }}
+          hasOutputBoolean: ${{ parameters.hasOutputBoolean }}
+          hasOutputInteger: ${{ parameters.hasOutputInteger }}
+          hasOutputDecimal: ${{ parameters.hasOutputDecimal }}
+          hasOutputObject: ${{ parameters.hasOutputObject }}
+          hasOutputObjectWithSchema: ${{ parameters.hasOutputObjectWithSchema }}
+
+    - id: generateActivityGo
+      name: Generate activity.go
+      if: ${{ parameters.scaffoldActivities === 'yes' }}
+      each: ${{ parameters.activityList}}
+      action: fetch:template:file
+      input:
+        url: ./skeletons/activity/activity.go.njk
+        targetPath: ${{ "extensions/" + parameters.category + "/activity/" + each.value + "/activity.go" }}
+        replace: true
+        values:
+          extensionName: ${{ parameters.extensionName }}
+          category: ${{ parameters.category }}
+          version: ${{ parameters.version }}
+          activityName: ${{ each.value }}
+          hasConnection: ${{ parameters.scaffoldConnector }}
+
+    - id: generateActivityTestGo
+      name: Generate activity_test.go
+      if: ${{ parameters.scaffoldActivities === 'yes' }}
+      each: ${{ parameters.activityList}}
+      action: fetch:template:file
+      input:
+        url: ./skeletons/activity/activity_test.go.njk
+        targetPath: ${{ "extensions/" + parameters.category + "/activity/" + each.value + "/activity_test.go" }}
+        replace: true
+        values:
+          extensionName: ${{ parameters.extensionName }}
+          category: ${{ parameters.category }}
+          version: ${{ parameters.version }}
+          activityName: ${{ each.value }}
+          hasConnection: ${{ parameters.scaffoldConnector }}
+          hasSettingsString: ${{ parameters.hasSettingsString }}
+          hasSettingsBoolean: ${{ parameters.hasSettingsBoolean }}
+          hasSettingsDropdown: ${{ parameters.hasSettingsDropdown }}
+          hasInputString: ${{ parameters.hasInputString }}
+          hasInputBoolean: ${{ parameters.hasInputBoolean }}
+          hasInputInteger: ${{ parameters.hasInputInteger }}
+          hasInputDecimal: ${{ parameters.hasInputDecimal }}
+          hasInputObject: ${{ parameters.hasInputObject }}
+          hasInputObjectWithSchema: ${{ parameters.hasInputObjectWithSchema }}
+          hasInputParameters: ${{ parameters.hasInputParameters }}
+          hasOutputString: ${{ parameters.hasOutputString }}
+          hasOutputBoolean: ${{ parameters.hasOutputBoolean }}
+          hasOutputInteger: ${{ parameters.hasOutputInteger }}
+          hasOutputDecimal: ${{ parameters.hasOutputDecimal }}
+          hasOutputObject: ${{ parameters.hasOutputObject }}
+          hasOutputObjectWithSchema: ${{ parameters.hasOutputObjectWithSchema }}
+
+    - id: generateGoMod
+      name: Generate go.mod
+      action: fetch:template:file
+      input:
+        url: ./skeletons/go.mod.njk
+        targetPath: ${{ "extensions/" + parameters.category + "/go.mod" }}
+        replace: true
+        values:
+          owner:   ${{ (parameters.repoUrl | parseRepoUrl).owner }}
+          category: ${{ parameters.category }}
+
+
+
+    - id: makeTriggerFolder
+      name: Make activity folder in src (if required)
+      if: ${{ parameters.scaffoldTrigger === 'yes' }}
+      action: file:makeDirectory
+      input:
+        dirPath: ${{ "extensions/" + parameters.category + "/src/trigger" }}
+
+    - id: makeConnectorFolder
+      name: Make activity folder in src (if required)
+      if: ${{ parameters.scaffoldConnector === 'yes' }}
+      action: file:makeDirectory
+      input:
+        dirPath: ${{ "extensions/" + parameters.category + "/src/connector" }}
+
+    - id: generateReadme
+      name: Generate top-level README.md
+      action: fetch:template:file
+      input:
+        url: ./skeletons/README.md
+        targetPath: ${{ "extensions/" + parameters.category + "/README.md" }}
+        replace: true
+        values:
+          extensionName: ${{ parameters.category }}
+          overview: ${{ parameters.overview}}
+          shortName: ${{ parameters.extensionName }}
+          description: ${{ parameters.description }}
+
+
+
+
+    - id: listDirectories
+      name: List Directories in Repository
+      action: file:listDirectories
+
+
+    - id: push
+      name: Push Current Repo
+      action: tibco:git:push
+      input:
+        failOnError: true
+
+
+  output:
+    links:
+      # If you are not using register step above, remove the below Open in catalog link.
+      - title: Repository (Pull Request)
+        url: ${{ steps.cpr.output.remoteUrl }}

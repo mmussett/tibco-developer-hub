@@ -1,0 +1,19 @@
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: tibco-imported
+  description: TIBCO importer group
+spec:
+  type: organization
+  profile:
+    displayName: TIBCO imported
+    email: info@acme.com
+  children: []
+---
+apiVersion: backstage.io/v1alpha1
+kind: Location
+metadata:
+  name: import-flow-locations
+spec:
+  targets:
+    - ./import-flow-bw6-shared-modules-v1.yaml

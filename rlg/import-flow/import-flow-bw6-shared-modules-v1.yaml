@@ -1,0 +1,220 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: import-flow-bw6-shared-modules-v1
+  title: Import flow for BW6 Shared Modules 
+  description: Import existing BW6 Shared Module into TIBCO Developer Hub
+  tags:
+    - import-flow
+    - tibco
+    - template
+    - developer-hub
+spec:
+  owner: group:default/tibco-imported
+  type: import-flow
+
+  parameters:
+    - title: Repository Location
+      required:
+        - repoUrl
+        - branchName
+      properties:
+        repoUrl:
+          title: GitHub repository with Existing BW6 Shared Module Project
+          type: string
+          ui:field: RepoUrlPicker
+          ui:options:
+            allowedHosts:
+              - github.com
+        branchName:
+          title: Branch name
+          type: string
+          description: Name of the branch to commit repository changes to
+
+    - title: Shared Module Details
+      required:
+        - sharedmodule
+        - owner
+        - system
+      properties:
+        sharedmodule:
+          title: BWCE Shared Module Name
+          type: string
+          description: Name of the BWCE Shared Module to import
+        owner:
+          title: Owner
+          type: string
+          description: Owner of the template
+          ui:field: OwnerPicker
+          ui:options:
+            allowedKinds:
+              - Group
+        system:
+          title: System Name
+          type: string
+          description: Name of the system or domain this module is part of
+
+  # The import flow consist out of 4 steps:
+  # 1. Fetch the project from GitHub
+  # 2. Generate the Component YAML
+  # 3. Commit the Component YAML file back to the GitHub project branch creating a pull request
+  # 4. Register the Component in the catalog
+
+  steps:
+    - id: clone
+      name: Clone the Project
+      action: tibco:git:clone
+      input:
+        failOnError: true
+        repoUrl: ${{ "https://"  + (parameters.repoUrl | parseRepoUrl).host + "/" + (parameters.repoUrl | parseRepoUrl).owner + "/" +  (parameters.repoUrl | parseRepoUrl).repo }}
+
+    - id: listDirectories
+      name: List Directories in Repository
+      action: file:listDirectories
+
+    - id: read-manifest
+      name: Read manifest file MANIFEST.MF
+      action: file:read
+      input:
+        filePath: ${{ parameters.sharedmodule + "/META-INF/MANIFEST.MF" }}
+        encoding: utf8
+
+    - id: find-bundle-version
+      name: Find Bundle-Version statements in MANIFEST.MF
+      action: regex:match
+      input:
+        text: ${{ steps['read-manifest'].output.content }}
+        pattern: 'Bundle-Version: ([A-Za-z0-9]+(\.[A-Za-z0-9]+)+)'
+        flags: 'gm'
+        extractGroup: 1
+
+    - id: debug-log-bundle-version
+      name: Process if matches found
+      if: ${{ steps['find-bundle-version'].output.hasMatches }}
+      action: debug:log
+      input:
+        message: 'Found Bundle-Version ${{ steps["find-bundle-version"].output.matches }}'
+
+    - id: extract-bundle-version
+      name: Extract bundle-version from MANIFEST.MF
+      action: file:readAndMatch
+      input:
+        filePath: ${{ parameters.sharedmodule + "/META-INF/MANIFEST.MF" }}
+        pattern: 'Bundle-Version: ([A-Za-z0-9]+(\.[A-Za-z0-9]+)+)'
+        flags: 'gm'
+        extractGroup: 1
+
+    - id: extract
+      name: Extract Parameters
+      action: tibco:extract-parameters
+      input:
+        failOnError: true
+        extractParameters:
+          projectName:
+            type: xml
+            filePath: ${{ parameters.sharedmodule + "/.project" }}
+            # For xml type extractParameters both json path and xpath are supported
+            # jsonPath: $.projectDescription.name
+            xPath: string(/projectDescription/name)
+          projectDescription:
+            type: xml
+            filePath: ${{ parameters.sharedmodule + "/.project" }}
+            # For xml type extractParameters both json path and xpath are supported
+            # jsonPath: $.projectDescription.comment
+            xPath: string(/projectDescription/comment)
+          projectManifest:
+            type: file
+            filePath: ${{ parameters.sharedmodule + "/META-INF/MANIFEST.MF" }}
+            regex: "(.*)(.*)"
+
+
+
+    # extractParameters type json, file and workspace also supported
+    #          example_parameter1:
+    #            type: json
+    #            filePath: <File path>
+    #            jsonPath: <Json path>
+    #          example_parameter2:
+    #            type: file
+    #            filePath: <File path>
+    #            regex: <Regex>
+    #          example_parameter3:
+    #            type: workspace
+    #            onlyName: true
+    #            directoryPath: <Directory path>
+    #            regex: <Regex>
+
+    - id: createYaml
+      name: Create YAML
+      action: tibco:create-yaml
+      input:
+        # Add sharedmodule name
+        outputFile: ${{  parameters.sharedmodule + "-catalog-info.yaml" }}
+        #      outputFile: "catalog-info.yaml"
+        outputStructure:
+          apiVersion: backstage.io/v1alpha1
+          kind: Component
+          metadata:
+            # Output of the Extract Parameters action step will always be an array, so we are using first item from the array
+            name: ${{ steps.extract.output.projectName[0]}}
+            description: ${{ steps.extract.output.projectDescription[0] }}
+            tags:
+              - bw6
+              - sharedmodule
+            links:
+              - title: TIBCO Business Works
+                url: https://www.tibco.com/products/tibco-businessworks
+            labels:
+              version: ${{ steps['find-bundle-version'].output.matches[0] }}
+            annotations:
+              github.com/project-slug: ${{ "https://"  + (parameters.repoUrl | parseRepoUrl).host + "/" + (parameters.repoUrl | parseRepoUrl).owner + "/" +  (parameters.repoUrl | parseRepoUrl).repo }}
+              # backstage.io/techdocs-ref: dir:.
+          spec:
+            type: sharedmodule
+            lifecycle: production
+            system: ${{ parameters.system }}
+            owner: ${{ parameters.owner }}
+
+    # The import flow debug step, enable it for debugging
+
+    #   - id: Log Debug
+    #     name: Debug Log
+    #     action: debug:log
+    #     input:
+    #       message: "Fetched the BWCE Skeleton template"
+    #       listWorkspace: true
+    #       projectName: ${{ steps.extract.output.projectName[0] }}
+    #       projectDescription: ${{ steps.extract.output.projectDescription[0] }}
+    #       repoUrl: ${{ parameters.repoUrl }}
+
+    - id: push
+      name: Push Current Repo
+      action: tibco:git:push
+      input:
+        failOnError: true
+
+    # Optionally you can leave this step out, if your developer hub synchronize with the GitHub organization
+    # When the pull request is merged, the component will be registered by the GitHub catalog provider, below is the example configuration
+    # catalog:
+    #   providers:
+    #     github:
+    #       providerId:
+    #         organization: '<organization>'
+    #         catalogPath: '**/*catalog-info.yaml'
+    #         schedule:
+    #           frequency: { minutes: 30 }
+
+    - id: register
+      name: Register
+      action: catalog:register
+      input:
+        catalogInfoUrl: ${{ "https://"  + (parameters.repoUrl | parseRepoUrl).host + "/" + (parameters.repoUrl | parseRepoUrl).owner + "/" +  (parameters.repoUrl | parseRepoUrl).repo + "/blob/" + ( parameters.branchName ) + "/" + parameters.sharedmodule + "-catalog-info.yaml" }}
+
+  output:
+    links:
+      # If you are not using register step above, remove the below Open in catalog link.
+      - title: Open in catalog
+        icon: catalog
+        entityRef: ${{ steps.register.output.entityRef }}
+      - title: Repository (Pull Request)
+        url: ${{ steps.cpr.output.remoteUrl }}

@@ -1,0 +1,209 @@
+package ${{values.activityName}}
+
+import "github.com/project-flogo/core/data/coerce"
+
+type Settings struct {
+	ASettingString string `md:"aSettingString,required"`
+}
+
+type Input struct {
+{%- if(values.hasInputString === 'yes') %} 
+	AnInputString string `md:"anInputString,required"`
+{%- endif %}
+{%- if(values.hasInputBoolean === 'yes') %}
+	AnInputBoolean bool                   `md:"anInputBoolean,required"`
+{%- endif %}
+{%- if(values.hasInputInteger === 'yes') %}
+	AnInputInteger          int64                  `md:"anInputInteger,required"`
+{%- endif %}
+{%- if(values.hasInputDecimal === 'yes') %}
+	AnInputDecimal          float64                `md:"anInputDecimal,required"`
+{%- endif %}
+{%- if(values.hasInputObject === 'yes') %}
+	AnInputObject           map[string]interface{} `md:"AnInputObject,required"`
+{%- endif %}
+{%- if(values.hasInputObjectWithSchema === 'yes') %}
+	AnInputObjectWithSchema map[string]interface{} `md:"anInputObjectWithSchema,required"`
+{%- endif %}
+{%- if(values.hasInputParameters === 'yes') %}
+	AnInputParameters       map[string]interface{} `md:"anInputParameters,required"`
+{%- endif %}
+}
+
+type Output struct {
+{%- if(values.hasOutputString === 'yes') %}
+	AnOutputString           string                 `md:"anOutputString,required"`
+{%- endif %}
+{%- if(values.hasOutputBoolean === 'yes') %}
+	AnOutputBoolean          bool                   `md:"anOutputBoolean,required"`
+{%- endif %}
+{%- if(values.hasOutputInteger === 'yes') %}
+	AnOutputInteger          int64                  `md:"anOutputInteger,required"`
+{%- endif %}
+{%- if(values.hasOutputDecimal === 'yes') %}
+	AnOutputDecimal          float64                `md:"anOutputDecimal,required"`
+{%- endif %}
+{%- if(values.hasOutputObject === 'yes') %}
+	AnOutputObject           map[string]interface{} `md:"anOutputObject,required"`
+{%- endif %}
+{%- if(values.hasOutputObjectWithSchema === 'yes') %}
+	AnOutputObjectWithSchema map[string]interface{} `md:"anOutputObjectWithSchema,required"`
+{%- endif %}
+}
+
+
+func (i *Input) FromMap(values map[string]interface{}) error {
+	var err error
+
+{%- if(values.hasInputString === 'yes') %} 
+	i.AnInputString, err = coerce.ToString(values["anInputString"])
+	if err != nil {
+		return err
+	}
+{%- endif %}
+
+{%- if(values.hasInputBoolean === 'yes') %}
+	i.AnInputBoolean, err = coerce.ToBool(values["anInputBoolean"])
+	if err != nil {
+		return err
+	}
+{%- endif %}
+
+{%- if(values.hasInputInteger === 'yes') %}
+	i.AnInputInteger, err = coerce.ToInt64(values["anInputInteger"])
+	if err != nil {
+		return err
+	}
+{%- endif %}
+
+{%- if(values.hasInputDecimal === 'yes') %}
+	i.AnInputDecimal, err = coerce.ToFloat64(values["anInputDecimal"])
+	if err != nil {
+		return err
+	}
+{%- endif %}
+
+{%- if(values.hasInputObject === 'yes') %}
+	i.AnInputObject, err = coerce.ToObject(values["anInputObject"])
+	if err != nil {
+		return err
+	}
+{%- endif %}
+
+{%- if(values.hasInputObjectWithSchema === 'yes') %}
+	i.AnInputObjectWithSchema, err = coerce.ToObject(values["anInputObject"])
+	if err != nil {
+		return err
+	}
+{%- endif %}
+
+{%- if(values.hasInputParameters === 'yes') %}
+	i.AnInputParameters, err = coerce.ToObject(values["anOutputObjectWithSchema"])
+	if err != nil {
+		return err
+	}
+{%- endif %}
+
+	return nil
+}
+
+func (i *Input) ToMap() map[string]interface{} {
+
+	return map[string]interface{}{
+{%- if(values.hasInputString === 'yes') %} 
+		"AnInputString":           i.AnInputString,
+{%- endif %}
+{%- if(values.hasInputBoolean === 'yes') %}
+		"AnInputBoolean":          i.AnInputBoolean,
+{%- endif %}
+{%- if(values.hasInputInteger === 'yes') %}
+		"AnInputInteger":          i.AnInputInteger,
+{%- endif %}
+{%- if(values.hasInputDecimal === 'yes') %}
+		"AnInputDecimal":          i.AnInputDecimal,
+{%- endif %}
+{%- if(values.hasInputObject === 'yes') %}
+		"AnInputObject":           i.AnInputObject,
+{%- endif %}
+{%- if(values.hasInputObjectWithSchema === 'yes') %}
+		"AnInputObjectWithSchema": i.AnInputObjectWithSchema,
+{%- endif %}
+{%- if(values.hasInputParameters === 'yes') %}
+		"AnInputParameters":       i.AnInputParameters,
+{%- endif %}
+	}
+
+
+}
+
+
+func (o *Output) FromMap(values map[string]interface{}) error {
+	var err error
+
+{%- if(values.hasOutputString === 'yes') %}
+	o.AnOutputString, err = coerce.ToString(values["anOutputString"])
+	if err != nil {
+		return err
+	}
+{%- endif %}
+
+{%- if(values.hasOutputBoolean === 'yes') %}
+	o.AnOutputBoolean, err = coerce.ToBool(values["anOutputBoolean"])
+	if err != nil {
+		return err
+	}
+{%- endif %}
+
+{%- if(values.hasOutputInteger === 'yes') %}
+	o.AnOutputInteger, err = coerce.ToInt64(values["anOutputInteger"])
+	if err != nil {
+		return err
+	}
+{%- endif %}
+
+{%- if(values.hasOutputDecimal === 'yes') %}
+	o.AnOutputDecimal, err = coerce.ToFloat64(values["anOutputDecimal"])
+	if err != nil {
+		return err
+	}
+{%- endif %}
+
+{%- if(values.hasOutputObject === 'yes') %}
+	o.AnOutputObject, err = coerce.ToObject(values["anOutputObject"])
+	if err != nil {
+		return err
+	}
+{%- endif %}
+
+{%- if(values.hasOutputObjectWithSchema === 'yes') %}
+	o.AnOutputObjectWithSchema, err = coerce.ToObject(values["anOutputObjectWithSchema"])
+	if err != nil {
+		return err
+	}
+{%- endif %}
+
+	return nil
+}
+
+func (o *Output) ToMap() map[string]interface{} {
+	return map[string]interface{}{
+{%- if(values.hasOutputString === 'yes') %}
+		"anOutputString":           o.AnOutputString,
+{%- endif %}
+{%- if(values.hasOutputBoolean === 'yes') %}
+		"anOutputBoolean":          o.AnOutputBoolean,
+{%- endif %}
+{%- if(values.hasOutputInteger === 'yes') %}
+		"anOutputInteger":          o.AnOutputInteger,
+{%- endif %}
+{%- if(values.hasOutputDecimal === 'yes') %}
+		"anOutputDecimal":          o.AnOutputDecimal,
+{%- endif %}
+{%- if(values.hasOutputObject === 'yes') %}
+		"anOutputObject":           o.AnOutputObject,
+{%- endif %}
+{%- if(values.hasOutputObjectWithSchema === 'yes') %}
+		"anOutputObjectWithSchema": o.AnOutputObjectWithSchema,
+{%- endif %}
+	}
+}

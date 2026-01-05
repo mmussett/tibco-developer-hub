@@ -70,3 +70,5 @@ environment.sh
 
 # Local environment variables
 /.env.yarn
+
+/flogo-extension-generators
